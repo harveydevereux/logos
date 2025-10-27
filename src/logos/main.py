@@ -1,18 +1,22 @@
-import typer
+from typer import Option, Typer
 
+from typing import Annotated
+from pathlib import Path
 
-app = typer.Typer()
+from logos.types.log import Log
 
-@app.command()                                                                  
-def goodbye():                                                                    
-    """                                                                         
-    Say goodbye                                                                   
-    """                                                                         
-    typer.echo("Goodbye!")    
+app = Typer()
 
 @app.command()
-def hello():
+def tasks(
+    root_directory: Annotated[
+        Path,
+        Option(help="The root of the log files.")
+    ] = Path("./")
+):
     """
-    Say hello
+    Report outstanding tasks.
     """
-    typer.echo("Hello!")
+    log = Log(root_directory)
+    log.show_tasks()
+
