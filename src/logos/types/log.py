@@ -2,12 +2,11 @@ from pathlib import Path
 from typing import Iterable
 from datetime import date
 
-from logos.types.task import Task
 from logos.types.entry import Entry
+
 
 class Log:
     def __init__(self, root: Path):
-
         self._root = root
         self.entries = []
         self._task_to_entry = dict()
@@ -26,14 +25,14 @@ class Log:
 
         m = min(len(h) for h in hashes)
         self._prune_length = m
-        for length in range(1, m+1):
+        for length in range(1, m + 1):
             pruned = set(hash[:length] for hash in hashes)
             if len(pruned) == len(hashes):
                 self._prune_length = length
                 break
 
         self._prune_length = max(4, self._prune_length)
-        self._pruned_to_hash = {hash[:self._prune_length]: hash for hash in hashes}
+        self._pruned_to_hash = {hash[: self._prune_length]: hash for hash in hashes}
 
     def task_to_path(self, hash: str) -> Path:
         hash = self._to_full_hash(hash)
@@ -57,11 +56,11 @@ class Log:
 
         print(f"{self._root}:\n Outstanding tasks: {outstanding}")
         for start_date in tasks:
-            days_past = (today-start_date).days
+            days_past = (today - start_date).days
             for task in tasks[start_date]:
                 if not task.complete:
                     print(f"    Age: {days_past} days ({start_date})")
-                    print(f"      [0x{task.hash[:self._prune_length]}] {task.name} ")
+                    print(f"      [0x{task.hash[: self._prune_length]}] {task.name} ")
 
         if show_complete:
             print(f"\n Complete tasks: {complete}")
@@ -69,7 +68,9 @@ class Log:
                 for task in tasks[start_date]:
                     if task.complete:
                         print(f"    Dated: {start_date}")
-                        print(f"      [0x{task.hash[:self._prune_length]}] {task.name} ")
+                        print(
+                            f"      [0x{task.hash[: self._prune_length]}] {task.name} "
+                        )
 
     def lastest(self) -> Entry:
         return self._entry_by_date[list(reversed(sorted(self._entry_by_date)))[0]]
@@ -79,10 +80,10 @@ class Log:
         self._task_to_entry[hash].setComplete(hash, complete)
 
     def _get_dirs(self, path: Path) -> Iterable[Path]:
-        return [p for p in path.glob('[!.!__]*') if p.is_dir()]
+        return [p for p in path.glob("[!.!__]*") if p.is_dir()]
 
     def _get_files(self, path: Path) -> Iterable[Path]:
-        return [p for p in path.glob('[!.]*') if p.is_file()]
+        return [p for p in path.glob("[!.]*") if p.is_file()]
 
     def _to_full_hash(self, hash: str) -> str:
         hash = hash.lstrip("0x").lower()

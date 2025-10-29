@@ -5,12 +5,12 @@ from warnings import warn
 
 from logos.types.task import task_from_markdown, is_task
 
+
 class Entry:
     def __init__(self, file: Path):
-
         self.path = file
         self._hash = self._file_hash()
-        self.date = date.fromisoformat(str(self.path).split('/')[-1].split('.')[0])
+        self.date = date.fromisoformat(str(self.path).split("/")[-1].split(".")[0])
         with open(self.path, "r") as io:
             tasks = [task_from_markdown(line) for line in io.readlines()]
 
