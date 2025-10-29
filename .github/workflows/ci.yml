@@ -1,0 +1,49 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        python-version: ["3.10","3.11","3.12"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.6.2"
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install "all" dependencies
+        run: uv sync --extra all
+
+      - name: Run test suite
+        env:
+          # show timings of tests
+          PYTEST_ADDOPTS: "--durations=0"
+        run: uv run --no-sync pytest --cov logos --cov-append .
+
+  pre-commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run pre-commit
+        run: |
+          uv run pre-commit install
+          uv run pre-commit run --all-files || ( git status --short ; git diff ; exit 1 )
