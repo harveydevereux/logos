@@ -72,7 +72,7 @@ class Log:
                             f"      [0x{task.hash[: self._prune_length]}] {task.name} "
                         )
 
-    def lastest(self) -> Entry:
+    def last(self) -> Entry:
         return self._entry_by_date[list(reversed(sorted(self._entry_by_date)))[0]]
 
     def setComplete(self, hash: str, complete: bool) -> None:

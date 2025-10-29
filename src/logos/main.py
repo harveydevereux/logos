@@ -2,6 +2,11 @@ from typer import Option, Argument, Typer
 
 from typing import Annotated
 from pathlib import Path
+from datetime import date
+import os
+from subprocess import call
+
+import builtins
 
 from logos.types.log import Log
 
@@ -22,21 +27,40 @@ def tasks(
 
 
 @app.command()
-def latest(
+def last(
     root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
         "./"
     ),
 ):
     """
-    Report the latest entry.
+    Report the last entry.
     """
-    log = Log(root_directory)
-    last = log.lastest()
+    last = Log(root_directory).last()
     print(f"Dated: {last.date}\n")
-    with open(last.path, "r") as io:
+    with builtins.open(last.path, "r") as io:
         for line in io:
             out = line.rstrip("\n")
             print(f"    {out}")
+
+
+@app.command()
+def open(
+    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
+        "./"
+    ),
+):
+    """
+    Open the current entry.
+    """
+    today = date.today()
+    year, smonth, day = today.strftime("%Y-%B-%d").split("-")
+    year, imonth, day = today.strftime("%Y-%m-%d").split("-")
+    folder = root_directory / year / smonth
+    if not folder.exists():
+        os.makedirs(folder)
+    file = folder / f"{year}-{imonth}-{day}.md"
+    EDITOR = os.environ.get("EDITOR") if os.environ.get("EDITOR") else "vim"
+    call([EDITOR, file])
 
 
 @app.command()
