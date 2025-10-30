@@ -13,6 +13,15 @@ from logos.types.log import Log
 app = Typer()
 
 
+def _date_from_argument(entry: str):
+    requested = None
+    if entry is not None:
+        requested = date.fromisoformat(entry)
+        if requested > date.today():
+            raise ValueError(f"Date {entry} is in the future.")
+    return requested
+
+
 @app.command()
 def tasks(
     root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
@@ -27,37 +36,66 @@ def tasks(
 
 
 @app.command()
-def last(
+def show(
+    entry: Annotated[
+        str | None,
+        Argument(help="The date of an entry to print, in YYYY-MM-DD format."),
+    ] = None,
     root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
         "./"
     ),
 ):
     """
-    Report the last entry.
+    Show the given, or last, entry.
     """
-    last = Log(root_directory).last()
-    print(f"Dated: {last.date}\n")
-    with builtins.open(last.path, "r") as io:
+    requested = _date_from_argument(entry)
+    if requested is None:
+        entry_to_show = Log(root_directory).last()
+    else:
+        entry_to_show = Log(root_directory).entry_at_date(requested)
+        if entry_to_show is None:
+            print(f"No entry at date {entry}")
+            exit()
+
+    print(f"Dated: {entry_to_show.date}\n")
+    with builtins.open(entry_to_show.path, "r") as io:
         for line in io:
             out = line.rstrip("\n")
             print(f"    {out}")
 
 
 @app.command()
+def list(
+    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
+        "./"
+    ),
+):
+    """List the available entries"""
+    Log(root_directory).show_entries()
+
+
+@app.command()
 def open(
+    entry: Annotated[
+        str | None, Argument(help="The date of an entry to open, in YYYY-MM-DD format.")
+    ] = None,
     root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
         "./"
     ),
 ):
     """
-    Open the current entry.
+    Open the current (or dated) entry.
     """
-    today = date.today()
-    year, smonth, day = today.strftime("%Y-%B-%d").split("-")
-    year, imonth, day = today.strftime("%Y-%m-%d").split("-")
+    requested = _date_from_argument(entry)
+    if requested is None:
+        requested = date.today()
+
+    year, smonth, day = requested.strftime("%Y-%B-%d").split("-")
+    year, imonth, day = requested.strftime("%Y-%m-%d").split("-")
     folder = root_directory / year / smonth
     if not folder.exists():
         os.makedirs(folder)
+
     file = folder / f"{year}-{imonth}-{day}.md"
     EDITOR = os.environ.get("EDITOR") if os.environ.get("EDITOR") else "vim"
     call([EDITOR, file])

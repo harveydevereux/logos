@@ -40,6 +40,30 @@ class Log:
         if hash in self._task_to_entry:
             return self._task_to_entry[hash].path
 
+    def show_entries(self):
+        dates = self._entry_by_date.keys()
+        years = [d.year for d in dates]
+        months = [d.month for d in dates]
+
+        organised = dict()
+        for year in set(years):
+            organised[year] = dict()
+            for month in set(months):
+                organised[year][month] = []
+
+        for d, entry in self._entry_by_date.items():
+            organised[d.year][d.month].append(entry)
+
+        for year in organised:
+            print(f"Entries in {year}")
+            for month in organised[year]:
+                _, smonth, _ = (
+                    organised[year][month][0].date.strftime("%Y-%B-%d").split("-")
+                )
+                print(f"  {smonth}")
+                for entry in organised[year][month]:
+                    print(f"    {entry.path}")
+
     def show_tasks(self, show_complete: bool):
         today = date.today()
 
@@ -74,6 +98,9 @@ class Log:
 
     def last(self) -> Entry:
         return self._entry_by_date[list(reversed(sorted(self._entry_by_date)))[0]]
+
+    def entry_at_date(self, day: date):
+        return self._entry_by_date.get(day, None)
 
     def setComplete(self, hash: str, complete: bool) -> None:
         hash = self._to_full_hash(hash)
