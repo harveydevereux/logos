@@ -26,6 +26,6 @@ def is_task(line: str) -> bool:
 
 def task_from_markdown(line: str) -> Task | None:
     if is_task(line):
-        name = line.split("]")[-1]
         complete = True if search("^(\s*)- \[x\] (.+)$", line) else False
+        name = line.split("- [x]")[-1] if complete else line.split("- [ ]")[-1]
         return Task(name, complete)
