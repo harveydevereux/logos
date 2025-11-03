@@ -1,7 +1,7 @@
 from logos.types.task import is_task, Task, task_from_markdown
 
 
-def test_task_identification(tmp_path):
+def test_task_identification():
     not_task = (
         "not a task",
         "- still [] not a task",
@@ -24,14 +24,14 @@ def test_task_identification(tmp_path):
         assert is_task(example)
 
 
-def test_task_name(tmp_path):
+def test_task_name():
     names = ("a valid task", "also a task", "is a [task]", "is a task a [well]")
 
     for name in names:
         assert Task(name, True).name == name
 
 
-def test_task_md_conversionn(tmp_path):
+def test_task_md_conversion():
     names = ("a valid task", "also a task", "is a [task]", "is a task a [well]")
 
     for name in names:
