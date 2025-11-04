@@ -40,7 +40,7 @@ class Entry:
                     else:
                         if self._file_hash() != self._hash:
                             warn(f"Entry at {self.path} has new task:\n  {str(task)}")
-                    lines += str(task)
+                    lines += str(task) + "\n"
 
         with open(self.path, "w") as io:
             for line in lines:
