@@ -4,6 +4,7 @@ from hashlib import sha1
 from warnings import warn
 
 from logos.types.task import task_from_markdown, is_task
+from logos.utils import indent_length
 
 
 class Entry:
@@ -26,16 +27,16 @@ class Entry:
         lines = ""
         with open(self.path, "r") as io:
             for line in io.readlines():
-                if not is_task(line):
+                if not is_task(line.lstrip()):
                     lines += line
                 else:
-                    task = task_from_markdown(line)
+                    task = task_from_markdown(line.lstrip())
                     if task.hash in self.tasks:
                         task = self.tasks[task.hash]
                     else:
                         if self._file_hash() != self._hash:
                             warn(f"Entry at {self.path} has new task:\n  {str(task)}")
-                    lines += str(task) + "\n"
+                    lines += " " * indent_length(line) + str(task) + "\n"
 
         with open(self.path, "w") as io:
             for line in lines:
@@ -48,13 +49,6 @@ class Entry:
                 sha.update(line.encode())
         return sha.hexdigest()
 
-    def _indent_length(self, line: str) -> int:
-        if len(line.lstrip()) == 0:
-            return 0
-        for i, s in enumerate(line):
-            if s != " ":
-                return i
-
     def _parse_tasks(self) -> None:
         lines = ""
         with open(self.path, "r") as io:
@@ -66,7 +60,7 @@ class Entry:
         self.task_parent = dict()
 
         for i, line in enumerate(lines):
-            line_level = self._indent_length(line) // 4
+            line_level = indent_length(line) // 4
             if line_level == 0:
                 parents = [None]
                 indent = 0
