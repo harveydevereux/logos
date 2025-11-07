@@ -1,11 +1,12 @@
 from logos.types.entry import Entry
 
+from hashlib import sha1
 from datetime import date
 
 ENTRY = r"""
 This is some test.
 
-In an entry.
+Is an entry.
 
 - [ ] a task
     - [ ] that has
@@ -22,6 +23,17 @@ In an entry.
 TODAY = date.today()
 STODAY = TODAY.strftime("%Y-%m-%d")
 
+TASK_NAMES = [
+    "a task",
+    "that has",
+    "some sub",
+    "tasks",
+    "another task",
+    "a task with",
+    "a sub",
+    "sub task",
+]
+
 
 def test_entry(tmp_path):
     path = f"{tmp_path}/{STODAY}.md"
@@ -37,11 +49,19 @@ def test_entry(tmp_path):
 
     task_names = [task.name for task in entry.tasks.values()]
 
-    assert "a task" in task_names
-    assert "that has" in task_names
-    assert "some sub" in task_names
-    assert "tasks" in task_names
-    assert "another task" in task_names
-    assert "a task with" in task_names
-    assert "a sub" in task_names
-    assert "sub task" in task_names
+    assert sorted(set(task_names)) == sorted(set(TASK_NAMES))
+
+    name_to_hash = {name: sha1(name.encode()).hexdigest() for name in task_names}
+    for hash in name_to_hash.values():
+        assert hash in entry.tasks
+
+    assert entry.task_parent[name_to_hash["a task"]] is None
+    assert entry.task_parent[name_to_hash["another task"]] is None
+    assert entry.task_parent[name_to_hash["a task with"]] is None
+
+    assert entry.task_parent[name_to_hash["that has"]] == name_to_hash["a task"]
+    assert entry.task_parent[name_to_hash["some sub"]] == name_to_hash["a task"]
+    assert entry.task_parent[name_to_hash["tasks"]] == name_to_hash["a task"]
+
+    assert entry.task_parent[name_to_hash["a sub"]] == name_to_hash["a task with"]
+    assert entry.task_parent[name_to_hash["sub task"]] == name_to_hash["a sub"]

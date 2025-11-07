@@ -11,13 +11,8 @@ class Entry:
         self.path = file
         self._hash = self._file_hash()
         self.date = date.fromisoformat(str(self.path).split("/")[-1].split(".")[0])
-        with open(self.path, "r") as io:
-            tasks = [task_from_markdown(line) for line in io.readlines()]
 
-        self.tasks = dict()
-        for task in tasks:
-            if task is not None:
-                self.tasks[task.hash] = task
+        self._parse_tasks()
 
     def setComplete(self, task: str, complete: bool) -> None:
         if task in self.tasks:
@@ -52,3 +47,39 @@ class Entry:
             for line in io.readlines():
                 sha.update(line.encode())
         return sha.hexdigest()
+
+    def _indent_length(self, line: str) -> int:
+        if len(line.lstrip()) == 0:
+            return 0
+        for i, s in enumerate(line):
+            if s != " ":
+                return i
+
+    def _parse_tasks(self) -> None:
+        lines = ""
+        with open(self.path, "r") as io:
+            lines = [line for line in io.readlines() if is_task(line.lstrip())]
+
+        parents = []
+        indent = 0
+        self.tasks = [task_from_markdown(line.lstrip()) for line in lines]
+        self.task_parent = dict()
+
+        for i, line in enumerate(lines):
+            line_level = self._indent_length(line) // 4
+            if line_level == 0:
+                parents = [None]
+                indent = 0
+            elif line_level == indent + 1:
+                # New indent
+                parents.append(i - 1)
+                indent += 1
+            elif line_level < indent:
+                while indent > line_level:
+                    parents.pop(-1)
+                    indent -= 1
+
+            phash = self.tasks[parents[-1]].hash if parents[-1] is not None else None
+            self.task_parent[self.tasks[i].hash] = phash
+
+        self.tasks = {task.hash: task for task in self.tasks}
