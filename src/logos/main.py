@@ -23,7 +23,7 @@ def _date_from_argument(entry: str):
 
 def _check_path(path: Path | None) -> Path:
     if path is None:
-        return os.getenv("LOGOS_ROOT", "./")
+        return Path(os.getenv("LOGOS_ROOT", "./"))
     return path
 
 @app.command()
