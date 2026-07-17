@@ -21,18 +21,20 @@ def _date_from_argument(entry: str):
             raise ValueError(f"Date {entry} is in the future.")
     return requested
 
+def _check_path(path: Path | None) -> Path:
+    if path is None:
+        return os.getenv("LOGOS_ROOT", "./")
+    return path
 
 @app.command()
 def tasks(
-    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
-        "./"
-    ),
+    root_directory: Annotated[Path | None, Option(help="The root of the log files.")] = None,
     show_complete: Annotated[bool, Option(help="Include complete tasks")] = False,
 ):
     """
     Report outstanding tasks.
     """
-    Log(root_directory).show_tasks(show_complete)
+    Log(_check_path(root_directory)).show_tasks(show_complete)
 
 
 @app.command()
@@ -48,6 +50,7 @@ def show(
     """
     Show the given, or last, entry.
     """
+    root_directory = _check_path(root_directory)
     requested = _date_from_argument(entry)
     if requested is None:
         entry_to_show = Log(root_directory).last()
@@ -71,7 +74,7 @@ def list(
     ),
 ):
     """List the available entries"""
-    Log(root_directory).show_entries()
+    Log(_check_path(root_directory)).show_entries()
 
 
 @app.command()
@@ -86,6 +89,7 @@ def open(
     """
     Open the current (or dated) entry.
     """
+    root_directory = _check_path(root_directory)
     requested = _date_from_argument(entry)
     if requested is None:
         requested = date.today()
@@ -111,7 +115,7 @@ def task_path(
     """
     Return the path to a task form its hash.
     """
-    path = Log(root_directory).task_to_path(task_hash)
+    path = Log(_check_path(root_directory)).task_to_path(task_hash)
     if path is not None:
         print(path)
     else:
@@ -130,7 +134,7 @@ def complete(
     """
     Mark a task as complete (and write to the file).
     """
-    Log(root_directory).setComplete(task_hash, True)
+    Log(_check_path(root_directory)).setComplete(task_hash, True)
 
 
 @app.command()
@@ -145,4 +149,4 @@ def uncomplete(
     """
     Mark a task as incomplete (and write to the file).
     """
-    Log(root_directory).setComplete(task_hash, False)
+    Log(_check_path(root_directory)).setComplete(task_hash, False)
