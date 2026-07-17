@@ -43,9 +43,7 @@ def show(
         str | None,
         Argument(help="The date of an entry to print, in YYYY-MM-DD format."),
     ] = None,
-    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
-        "./"
-    ),
+    root_directory: Annotated[Path | None, Option(help="The root of the log files.")] = None
 ):
     """
     Show the given, or last, entry.
@@ -69,9 +67,7 @@ def show(
 
 @app.command()
 def list(
-    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
-        "./"
-    ),
+    root_directory: Annotated[Path | None, Option(help="The root of the log files.")] = None
 ):
     """List the available entries"""
     Log(_check_path(root_directory)).show_entries()
@@ -82,9 +78,7 @@ def open(
     entry: Annotated[
         str | None, Argument(help="The date of an entry to open, in YYYY-MM-DD format.")
     ] = None,
-    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
-        "./"
-    ),
+    root_directory: Annotated[Path | None, Option(help="The root of the log files.")] = None
 ):
     """
     Open the current (or dated) entry.
@@ -108,9 +102,7 @@ def open(
 @app.command()
 def task_path(
     task_hash: Annotated[str, Argument(help="The hash of a task to search for.")],
-    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
-        "./"
-    ),
+    root_directory: Annotated[Path | None, Option(help="The root of the log files.")] = None
 ):
     """
     Return the path to a task form its hash.
@@ -127,9 +119,7 @@ def complete(
     task_hash: Annotated[
         str, Argument(help="The hash of a task to mark as completed.")
     ],
-    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
-        "./"
-    ),
+    root_directory: Annotated[Path | None, Option(help="The root of the log files.")] = None
 ):
     """
     Mark a task as complete (and write to the file).
@@ -142,9 +132,7 @@ def uncomplete(
     task_hash: Annotated[
         str, Argument(help="The hash of a task to mark as not completed.")
     ],
-    root_directory: Annotated[Path, Option(help="The root of the log files.")] = Path(
-        "./"
-    ),
+    root_directory: Annotated[Path | None, Option(help="The root of the log files.")] = None
 ):
     """
     Mark a task as incomplete (and write to the file).
